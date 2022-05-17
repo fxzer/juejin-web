@@ -1,0 +1,14 @@
+@import url('./assets/style/reset.css');
+@import url('//at.alicdn.com/t/font_3405480_lremwb9szd.css');
+body{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: #F4F5F5;
+}
+//单行溢出隐藏
+.single-hide {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
