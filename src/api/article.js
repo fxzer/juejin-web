@@ -1,5 +1,8 @@
 import request from './index'
 
-export let  getArticleList = () => {
+export const  getArticleList = () => {
    return request.get('/api/article')
+}
+export const  collectArticle = (articleId) => {
+   return request.post(`/api/article/${articleId}/like`)
 }

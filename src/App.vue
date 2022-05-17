@@ -1,5 +1,5 @@
 <template>
-  <div class="view-container container">
+  <div class="view-container ">
     <Head/>
     <router-view/>
   </div>
@@ -23,4 +23,5 @@ export default {
  .view-container{
    width: 700px;
  }
+ 
 </style>

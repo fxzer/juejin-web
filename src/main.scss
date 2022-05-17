@@ -1,5 +1,5 @@
-@import url('./assets/style/reset.css');
-@import url('//at.alicdn.com/t/font_3405480_lremwb9szd.css');
+@import url('./assets/style/reset.scss');
+@import url('//at.alicdn.com/t/font_3405480_dv7p7trrg9i.css');
 body{
   width: 100%;
   display: flex;
@@ -11,4 +11,7 @@ body{
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+.el-notification  {
+  width: 200px !important;
 }
