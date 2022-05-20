@@ -2,7 +2,7 @@
 <div class="main-wrapper ">
   <div class="sort-box">
     <span v-for="(item,index) in sortOptions" :key="index" 
-    @click="activeIndex = index" :class="activeIndex == index?'active':''">{{item.label}}</span>
+    @click="getArticleListByCate(item,index)" :class="activeIndex == index?'active':''">{{item.label}}</span>
   </div>
   <div id='ArticleList'  class='article-list'  
     v-loading.fullscreen.lock="loading"
@@ -10,6 +10,16 @@
     element-loading-background="rgba(0, 0, 0, 0.5)">
     <ArticleItem v-for="article in articleList" :articleMsg="article" :key="article.id"
      @click.native="toDetail(article)"></ArticleItem>
+
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-sizes="[10, 20, 30, 40,50,100]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="totalCount">
+    </el-pagination>
   </div>
   
    <el-backtop target=".article-list" :bottom="100">
@@ -29,19 +39,29 @@ import {mapMutations} from 'vuex'
 export default {
   name: 'ArticleList',
   props: {
+    cate:{
+      type:String,
+      default:'notify'
+    },
   },
   data () {
     return {
       activeIndex:0,
+      currentPage:0,
+      pageSize:20,
+      totalCount:0,
       sortOptions:[
         {
-          label:'推荐'
+          label:'推荐',
+          key:'notify',
         },
         {
-          label:'最新'
+          label:'最新',
+          key:'latest'
         },
         {
-          label:'热榜'
+          label:'热榜',
+          key:'hot'
         },
       ],
       loading:false,
@@ -52,20 +72,61 @@ export default {
 
   },
   computed: { 
-
+    
   },
   components: { 
     ArticleItem:()=> import('./ArticleItem.vue')
   },
   methods: {
     ...mapMutations(['setCurArticle']),
-    async getArticleList(){
+    handleSizeChange(val) {
+        this.pageSize = val
+       this.getArticleList(this.cate)
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val
+      this.offset = (val-1) *this.pageSize
+      this.getArticleList(this.cate)
+    },
+    async getArticleList(cate){
       this.loading = true
-      const result = await getArticleList()
-      const userRes = await getUserInfo('6281f9815c3924c9a262103d')
-      let userArtList = userRes.user.likeArticles
-      if(result.success){
+       let result = null
+      try {
+        switch(cate){
+          case 'notify':
+            let {totalCount} = await getArticleList({limit:200})
+            let offset = Math.ceil(Math.random()*(totalCount-10)) 
+             result = await getArticleList({offset,limit:this.pageSize})
+             this.totalCount = totalCount
+            break;
+          case 'latest':
+            result = await getArticleList({offset:this.offset,limit:this.pageSize,sortBy:{updtedAt:-1}})
+            this.totalCount = result.totalCount
+            break;
+          case 'hot':
+            result = await getArticleList({offset:this.offset,limit:this.pageSize,sortBy:{likeCount:-1}})
+            console.log('result: ', result);
+            this.totalCount = result.totalCount
+            break;
+          case 'currentUser':
+            let author = JSON.parse(localStorage.getItem('user'))?.username
+             result = await getArticleList({offset:this.offset,limit:this.pageSize,author,sortBy:{updtedAt:-1}})
+            console.log('result: ', result);
+            this.totalCount = result.totalCount
+            break;
+        }
+      
+        let id = JSON.parse(localStorage.getItem('user'))?.id
+        let userArtList  = []
+        if(id){
+            const userRes = await getUserInfo(id)
+            userArtList = userRes.user.likeArticles
+        }
+      if(result?.success){
         this.articleList = this.isLikedHandler(userArtList,result.articleList)
+      }
+      } catch (error) {
+        console.log('error: ', error);
       }
       this.loading = false
     },
@@ -83,19 +144,27 @@ export default {
         return article
       })
       return newList
+    },
+    getArticleListByCate(item,index){
+      this.activeIndex = index
+      this.getArticleList(item.key)
     }
   },
   mounted () { 
-    this.getArticleList()
+    this.getArticleList(this.cate)
   },
   watch: { 
-
+    user:{
+      deep:true,
+      handler(val){
+         this.getArticleList(this.cate)
+      }
+    }
   }
 }
 </script>
 <style scoped lang='scss'>
 .main-wrapper{
-   padding-top:60px;
    background-color: #fff;
 }
 .sort-box{
@@ -135,5 +204,12 @@ export default {
  .iconfont{
    font-size: 20px;
  }
+
 }
+ .el-pagination{
+    border-top:1px solid #F1F1F1 ;
+    padding:8px 0;
+    text-align: center;
+    margin-bottom: 10px;
+ }
 </style>

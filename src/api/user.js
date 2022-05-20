@@ -8,3 +8,9 @@ export const followUser = (id) => {
 export const login = (user) => {
    return request.post(`/api/user/login`,{user})
 }
+export const register = (user) => {
+   return request.post(`/api/user`,{user})
+}
+export const updateUser = (user) => {
+   return request.put(`/api/user`,{user})
+}

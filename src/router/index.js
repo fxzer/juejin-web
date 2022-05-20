@@ -15,6 +15,11 @@ const routes = [
     name: 'ArticleDetail',
     component: ()=>import('@/views/ArticleDetail')
   },
+  {
+    path: '/userInfo',
+    name: 'UserInfo',
+    component: ()=>import('@/views/UserInfo')
+  },
 ]
 
 const router = new VueRouter({

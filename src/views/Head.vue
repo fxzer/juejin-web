@@ -1,11 +1,10 @@
 <template>
   <div   class='head' 
     v-loading.fullscreen.lock="loading"
-    
     element-loading-text="拼命掘金中..."
     element-loading-background="rgba(0, 0, 0, 0.5)">
-     <a href="" target="_blank">
-      <img src="../assets/images/logo.svg" alt="">
+     <a  @click="toHome" style="cursor:pointer;">
+      <img src="../assets/images/logo.svg" alt=""  >
     </a>
       <el-menu :default-active="activeIndex"   mode="horizontal" @select="handleSelect" active-text-color="#409EFF">
         <el-menu-item index="1">综合</el-menu-item>
@@ -13,18 +12,24 @@
         <el-menu-item index="前端">前端</el-menu-item>
         <el-menu-item index="后端">后端</el-menu-item>
       </el-menu>
-      <img :src="user.image" alt="" class="avatar" v-if="isLogin">
-
+      <el-dropdown  v-if="isLogin">
+        <img :src="userInfo?userInfo.image :''"  class="avatar">
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item   @click.native="toUserInfo">个人主页</el-dropdown-item>
+          <el-dropdown-item   @click.native="logout">退出登录</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
       <div class="user-action-box" v-else >
         <el-button type="primary" size="small" @click="registerShow" plain>注册</el-button>
         <el-button type="primary" size="small" @click="loginShow" plain>登录</el-button>
       </div>
       <Login :visible.sync="loginVisible" @done="lodinDone" />
+      <Register :visible.sync="registerVisible" @done="registerDone" />
   </div>
 </template>
 
 <script>
-import {login} from '@/api/user'
+import {login,register} from '@/api/user'
 import {mapState, mapMutations } from 'vuex';
 export default {
   name: 'Head',
@@ -33,7 +38,6 @@ export default {
   data () {
     return {
       loading:false,
-      isLogin:false,
       loginVisible:false,
       registerVisible:false,
       activeIndex:'1',
@@ -44,22 +48,40 @@ export default {
 
   },
   computed: { 
-    ...mapState(['user'])
+    ...mapState(['user']),
+    isLogin(){
+      return JSON.stringify(this.userInfo) !=='{}'
+    }
   },
   components: { 
     Login:()=>import('./Login'),
     Register:()=>import('./Register'),
   },
   methods: {
-    ...mapMutations(['setUserInfo']),
+    ...mapMutations(['setUserInfo','setToken']),
     handleSelect(index){
       console.log('index: ', index);
+    },
+    toHome(){
+      this.$router.push({
+        name:'ArticleList'
+      })
     },
     loginShow(){
       this.loginVisible = true
     },
     registerShow(){
       this.registerVisible = true
+    },
+    logout(){
+      this.setUserInfo()
+      this.setToken()
+      this.getUserInfo()
+    },
+    toUserInfo(){
+      this.$router.push({
+        name:'UserInfo'
+      })
     },
     async lodinDone(data){
       try {
@@ -71,38 +93,41 @@ export default {
             message:result.msg
           })
           this.setUserInfo(result.user)
+          this.setToken(result.token)
+        }
+      } catch (error) {
+        console.log('error: ', error);
+      }
+      this.getUserInfo()
+      this.loading = false
+    },
+   async registerDone(data){
+       try {
+        this.loading = true
+        const result = await register(data)
+        if(result.success){
+          this.$notify({
+            type:'success',
+            message:result.msg
+          })
         }
       } catch (error) {
         console.log('error: ', error);
       }
       this.loading = false
     },
-    registerDone(){
-      
-    },
     getUserInfo(){
       if(JSON.stringify(this.user) ==='{}' || !this.user){
-        this.userInfo = JSON.parse(localStorge('user'))
+        this.userInfo = JSON.parse(localStorage.getItem('user'))
       }else{
         this.userInfo = this.user
       }
     }
   },
   mounted () { 
-
+    this.getUserInfo()
   },
   watch: { 
-    user:{
-      deep:true,
-      handler(val){
-        console.log('val: ', val);
-        if(val?.image){
-          this.isLogin = true
-        }else{
-          this.isLogin = false
-        }
-      }
-    }
   }
 }
 </script>
@@ -129,9 +154,12 @@ export default {
    .el-menu .el-menu-item {
      font-weight: 600;
    }
-   .avatar{
+   .el-dropdown{
      position: absolute;
      right:32px;
+   }
+   .avatar{
+     cursor: pointer;
      display: block;
      width: 36px;
      height: 36px;

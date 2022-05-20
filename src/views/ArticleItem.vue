@@ -51,8 +51,6 @@ export default {
    async collectArticle(){
      try {
        const result = await collectArticle(this.articleMsg.id)
-       
-      
        if(result.success){
          this.$notify({
            type:'success',
@@ -167,7 +165,7 @@ export default {
             }
           }
           .icon-shoucang1{
-            color:#0fc97b;
+            color:#FFB800;
           }
         }
       }

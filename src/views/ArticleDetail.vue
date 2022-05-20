@@ -7,8 +7,13 @@
          <div class="user-name">{{username}} </div>
          <div class="date-time">{{timeFormat(articleData.createAt)}} </div>
        </div>
-       <el-button type="primary"   @click="follow" size="small"  icon="el-icon-plus" plain>关注</el-button>
+       <el-button :type="isFollowed ?'success':'primary'"   @click="follow" size="small"  
+       :icon="isFollowed?'el-icon-check':'el-icon-plus'" v-if="isShowFollow" plain>{{btnText}}</el-button>
      </div>
+    <img :src="articleData.cover"   class="cover" v-if="articleData.cover">
+    <p class="body">
+      {{articleData.body}}
+    </p>
   </div>
 </template>
 
@@ -22,6 +27,8 @@ export default {
   },
   data () {
     return {
+      isFollowed:false,
+      btnText:'关注',
       articleData:{},
       defalutAvatar:'https://p26-passport.byteacctimg.com/img/user-avatar/61130727b6e6bf9ed813434aeaed8ac3~300x300.image'
     }
@@ -36,7 +43,11 @@ export default {
     },
     username(){
       return this.articleData?.author?.username
-    }
+    },
+    isShowFollow(){
+      return this.articleData?.author?.id !=JSON.parse(localStorage.getItem('user'))?.id
+    },
+   
   },
   components: { 
 
@@ -47,15 +58,24 @@ export default {
     async follow(){
       try {
         let id = this.articleData?.author?.id
-        console.log('id: ', id);
-        const result = await followUser(id)
-        if(result.success){
+        let user = JSON.parse(localStorage.getItem('user'))
+        if(id && id != user?.id){
+           const result = await followUser(id)
+          this.isFollowed  =  result.fans.fansList.includes(user.id)
+          console.log('this.isFollowed  : ', this.isFollowed  );
+          if(result.success){
+            this.$notify({
+              type:'success',
+              message:result.msg
+            })
+          }
+        }else if(id == JSON.parse(localStorage.getItem('user')).id){
           this.$notify({
-            type:'success',
-            message:result.msg
-          })
+              type:'warning',
+              message:'不能关注自己!'
+            })
         }
-        console.log('result: ', result);
+        
       } catch (error) {
         console.log('error: ', error);
       }
@@ -71,12 +91,23 @@ export default {
     }else{
       this.articleData = this.curArticle
     }
-    // this.articleData.isFollow = this.judgeFollow( this.articleData.author.id,)
+        let user = JSON.parse(localStorage.getItem('user'))
+        this.isFollowed  =  this.articleData.author.fansList.includes(user.id)
     
   },
  
   watch: { 
-
+    isFollowed:{
+      immediate:true,
+      handler(val){
+        console.log('val: ', val);
+         if(val){
+          this.btnText = '已关注' 
+        }else{
+          this.btnText = '关注' 
+        }
+      }
+    }
   },
   beforeRouteLeave (to, from, next) {
     this.setCurArticle()
@@ -127,6 +158,17 @@ export default {
       .el-button{
         padding:8px 10px;
       }
+    }
+    .cover{
+      margin:10px 0;
+      width: 100%;
+      height: 400px;
+    }
+    .body{
+      font-size: 16px;
+      line-height: 1.6;
+      color:#333;
+
     }
  }
 </style>

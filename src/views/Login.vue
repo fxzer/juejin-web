@@ -9,11 +9,11 @@
        :before-close="close">
         <el-form :model="form" ref="formRef" :rules="rules" label-width="50px"  size="medium">
           <el-form-item label="邮箱" prop="email">
-            <el-input v-model="form.email"></el-input>
+            <el-input v-model="form.email" placeholder="请输入邮箱账号"></el-input>
           </el-form-item>
          
           <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" show-password></el-input>
+            <el-input v-model="form.password" placeholder="请输入密码" show-password></el-input>
           </el-form-item>
         </el-form>
         
@@ -66,15 +66,26 @@ export default {
       this.$emit('update:visible',false)
     },
     confirm(){
-      this.$emit('update:visible',false)
-      this.$emit('done',this.form)
+      this.$refs.formRef.validate((valid) => {
+         console.log('valid: ', valid);
+          if (valid) {
+              this.$emit("update:visible", false);
+             this.$emit("done", {...this.form});
+          } else {
+            return  
+          }
+        });
     }
   },
   mounted () { 
 
   },
   watch: { 
-
+    visible(val){
+      if(!val){
+        this.$refs.formRef.resetFields()
+      }
+    }
   }
 }
 </script>

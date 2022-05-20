@@ -1,7 +1,9 @@
 <template>
   <div class="view-container ">
     <Head/>
-    <router-view/>
+  <div class="main-box">
+      <router-view/>
+  </div>
   </div>
 </template>
 <script>
@@ -22,6 +24,9 @@ export default {
 <style lang="scss">
  .view-container{
    width: 700px;
+ }
+ .main-box{
+   margin-top:70px;
  }
  
 </style>
