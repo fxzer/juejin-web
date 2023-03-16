@@ -1,8 +1,8 @@
 import request from './index'
 
 export const  getArticleList = (conditions) => {
-   return request.post('/api/article/list',{conditions})
+   return request.post('/juejinapi/article/list',{conditions})
 }
 export const  collectArticle = (articleId) => {
-   return request.post(`/api/article/${articleId}/like`)
+   return request.post(`/juejinapi/article/${articleId}/like`)
 }
